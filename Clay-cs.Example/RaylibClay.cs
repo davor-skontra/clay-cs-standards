@@ -20,7 +20,7 @@ public static class RaylibClay
 		a = (byte)MathF.Round(color.a),
 	};
 
-	public static unsafe Clay_Dimensions MeasureText(Clay_String* str, Clay_TextElementConfig* config, nuint userData)
+	public static unsafe Clay_Dimensions MeasureText(Clay_String* str, Clay_TextElementConfig* config)
 	{
 		var text = str->ToCSharpString();
 		

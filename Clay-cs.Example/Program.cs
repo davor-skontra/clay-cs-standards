@@ -8,32 +8,28 @@ using Clay_cs.Example;
 using CommunityToolkit.HighPerformance;
 using ZeroElectric.Vinculum;
 
-ErrorCallback cb = (data, userData) => { Console.WriteLine($"{data.errorType}: {data.errorText.ToCSharpString()}"); };
+
+void ErrorHandler(Clay_ErrorData data)
+{
+	Console.WriteLine($"{data.errorType}: {data.errorText.ToCSharpString()}");
+}
+
 unsafe
 {
 	Console.WriteLine("Hello, World!");
 
 
-	var memorySize = ClayInterop.Clay_MinMemorySize();
-	var ptr = Marshal.AllocHGlobal((int)memorySize);
-	var measurePtr =
-		(delegate* unmanaged[Cdecl]<Clay_String*, Clay_TextElementConfig*, Clay_Dimensions>)Marshal
-			.GetFunctionPointerForDelegate(RaylibClay.MeasureText);
-	var cbPtr = Marshal.GetFunctionPointerForDelegate(cb);
-
-	var arena = ClayInterop.Clay_CreateArenaWithCapacityAndMemory(memorySize, (void*)ptr);
+	var memorySize = ClayUnsafe.MinMemorySize();
+	var arena = ClayUnsafe.CreateArena(memorySize);
+	ClayUnsafe.SetMeasureTextFunction(RaylibClay.MeasureText);
 
 	var dimensions = new Clay_Dimensions
 	{
 		width = 600,
 		height = 600,
 	};
-	ClayInterop.Clay_SetMeasureTextFunction(measurePtr);
-	ClayInterop.Clay_Initialize(arena, dimensions, new Clay_ErrorHandler
-	{
-		errorHandlerFunction = (delegate* unmanaged[Cdecl]<Clay_ErrorData, void>)cbPtr
-	});
-	ClayInterop.Clay_SetDebugModeEnabled(1);
+	ClayUnsafe.Initialize(arena.arena, dimensions, ErrorHandler);
+	ClayUnsafe.SetDebugModeEnabled(true);
 
 	Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE);
 	Raylib.InitWindow((int)dimensions.width, (int)dimensions.height, "C# Clay Raylib Demo");
@@ -48,19 +44,22 @@ unsafe
 			height = Raylib.GetScreenHeight(),
 		};
 
-		ClayInterop.Clay_BeginLayout();
-		ClayInterop.Clay_SetPointerState(new Clay_Vector2
+		ClayUnsafe.BeginLayout();
+		ClayUnsafe.SetPointerState(new Clay_Vector2
 		{
 			x = Raylib.GetMouseX(),
 			y = Raylib.GetMouseY()
-		}, (byte)(Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT) ? 1 : 0));
+		}, Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT));
+
 		var delta = Raylib.GetMouseDelta();
-		ClayInterop.Clay_UpdateScrollContainers(1, new Clay_Vector2
-		{
-			y = delta.Y,
-			x = delta.X
-		}, Raylib.GetFrameTime());
-		ClayInterop.Clay_SetLayoutDimensions(dimensions);
+		ClayUnsafe.UpdateScrollContainers(true,
+			new Clay_Vector2
+			{
+				y = delta.Y,
+				x = delta.X
+			}, Raylib.GetFrameTime()
+		);
+		ClayUnsafe.SetLayoutDimensions(dimensions);
 
 		for (var i = 0; i < 25; i++)
 		{
@@ -71,7 +70,8 @@ unsafe
 			fixed (char* idp = id)
 			{
 				var length = Encoding.UTF8.GetByteCount(id);
-				ClayInterop.Clay__AttachId(ClayInterop.Clay__HashString(new Clay_String { chars = (sbyte*)idp, length = length }, (uint)i, 0));
+				ClayInterop.Clay__AttachId(
+					ClayInterop.Clay__HashString(new Clay_String { chars = (sbyte*)idp, length = length }, (uint)i, 0));
 			}
 
 			ClayInterop.Clay__AttachLayoutConfig(ClayInterop.Clay__StoreLayoutConfig(new Clay_LayoutConfig
@@ -128,7 +128,7 @@ unsafe
 		}
 
 
-		var commands = ClayInterop.Clay_EndLayout();
+		var commands = ClayUnsafe.EndLayout();
 
 		Raylib.BeginDrawing();
 		Raylib.ClearBackground(Raylib.LIME);
@@ -138,7 +138,7 @@ unsafe
 		Raylib.EndDrawing();
 	}
 
-	Marshal.FreeHGlobal(ptr);
+	ClayUnsafe.FreeArena(arena);
 	Console.WriteLine("~ fin ~");
 }
 
