@@ -1,0 +1,146 @@
+﻿// See https://aka.ms/new-console-template for more information
+
+using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Text;
+using Clay_cs;
+using Clay_cs.Example;
+using CommunityToolkit.HighPerformance;
+using ZeroElectric.Vinculum;
+
+ErrorCallback cb = (data, userData) => { Console.WriteLine($"{data.errorType}: {data.errorText.ToCSharpString()}"); };
+unsafe
+{
+	Console.WriteLine("Hello, World!");
+
+
+	var memorySize = ClayInterop.Clay_MinMemorySize();
+	var ptr = Marshal.AllocHGlobal((int)memorySize);
+	var measurePtr =
+		(delegate* unmanaged[Cdecl]<Clay_String*, Clay_TextElementConfig*, Clay_Dimensions>)Marshal
+			.GetFunctionPointerForDelegate(RaylibClay.MeasureText);
+	var cbPtr = Marshal.GetFunctionPointerForDelegate(cb);
+
+	var arena = ClayInterop.Clay_CreateArenaWithCapacityAndMemory(memorySize, (void*)ptr);
+
+	var dimensions = new Clay_Dimensions
+	{
+		width = 600,
+		height = 600,
+	};
+	ClayInterop.Clay_SetMeasureTextFunction(measurePtr);
+	ClayInterop.Clay_Initialize(arena, dimensions, new Clay_ErrorHandler
+	{
+		errorHandlerFunction = (delegate* unmanaged[Cdecl]<Clay_ErrorData, void>)cbPtr
+	});
+	ClayInterop.Clay_SetDebugModeEnabled(1);
+
+	Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE);
+	Raylib.InitWindow((int)dimensions.width, (int)dimensions.height, "C# Clay Raylib Demo");
+	RaylibClay.Fonts[0] = Raylib.LoadFont("resources/Roboto-Regular.ttf");
+	Raylib.SetTextureFilter(RaylibClay.Fonts[0].texture, TextureFilter.TEXTURE_FILTER_BILINEAR);
+
+	while (Raylib.WindowShouldClose() == false)
+	{
+		dimensions = new Clay_Dimensions
+		{
+			width = Raylib.GetScreenWidth(),
+			height = Raylib.GetScreenHeight(),
+		};
+
+		ClayInterop.Clay_BeginLayout();
+		ClayInterop.Clay_SetPointerState(new Clay_Vector2
+		{
+			x = Raylib.GetMouseX(),
+			y = Raylib.GetMouseY()
+		}, (byte)(Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT) ? 1 : 0));
+		var delta = Raylib.GetMouseDelta();
+		ClayInterop.Clay_UpdateScrollContainers(1, new Clay_Vector2
+		{
+			y = delta.Y,
+			x = delta.X
+		}, Raylib.GetFrameTime());
+		ClayInterop.Clay_SetLayoutDimensions(dimensions);
+
+		for (var i = 0; i < 25; i++)
+		{
+			ClayInterop.Clay__OpenElement();
+
+
+			string id = String.Intern("Test");
+			fixed (char* idp = id)
+			{
+				var length = Encoding.UTF8.GetByteCount(id);
+				ClayInterop.Clay__AttachId(ClayInterop.Clay__HashString(new Clay_String { chars = (sbyte*)idp, length = length }, (uint)i, 0));
+			}
+
+			ClayInterop.Clay__AttachLayoutConfig(ClayInterop.Clay__StoreLayoutConfig(new Clay_LayoutConfig
+			{
+				padding = new Clay_Padding
+				{
+					top = 10,
+					left = 10,
+					right = 10,
+					bottom = 10,
+				},
+				childGap = 10,
+				childAlignment = new Clay_ChildAlignment
+				{
+					x = Clay_LayoutAlignmentX.CLAY_ALIGN_X_LEFT,
+					y = Clay_LayoutAlignmentY.CLAY_ALIGN_Y_TOP,
+				},
+				sizing = new Clay_Sizing
+				{
+					width = new Clay_SizingAxis
+					{
+						type = Clay__SizingType.CLAY__SIZING_TYPE_FIXED, size = new Clay_SizingAxis._size_e__Union
+						{
+							minMax = new Clay_SizingMinMax
+							{
+								min = 100,
+								max = 100,
+							}
+						}
+					},
+					height = new Clay_SizingAxis
+					{
+						type = Clay__SizingType.CLAY__SIZING_TYPE_FIXED, size = new Clay_SizingAxis._size_e__Union
+						{
+							minMax = new Clay_SizingMinMax
+							{
+								min = 100,
+								max = 100,
+							}
+						}
+					},
+				}
+			}));
+			ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
+			{
+				rectangleElementConfig = ClayInterop.Clay__StoreRectangleElementConfig(new Clay_RectangleElementConfig
+				{
+					color = new Clay_Color { r = 255, a = 255 },
+				})
+			}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_RECTANGLE);
+			ClayInterop.Clay__ElementPostConfiguration();
+
+			ClayInterop.Clay__CloseElement();
+		}
+
+
+		var commands = ClayInterop.Clay_EndLayout();
+
+		Raylib.BeginDrawing();
+		Raylib.ClearBackground(Raylib.LIME);
+		RaylibClay.RenderCommands(commands);
+		Raylib.DrawTextEx(RaylibClay.Fonts[0], "This text is rendered using direct raylib", new Vector2(), 16, 0,
+			Raylib.WHITE);
+		Raylib.EndDrawing();
+	}
+
+	Marshal.FreeHGlobal(ptr);
+	Console.WriteLine("~ fin ~");
+}
+
+
+delegate void ErrorCallback(Clay_ErrorData data, dynamic userData);
