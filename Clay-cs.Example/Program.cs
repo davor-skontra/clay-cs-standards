@@ -63,18 +63,19 @@ unsafe
 
 		for (var i = 0; i < 25; i++)
 		{
-			ClayInterop.Clay__OpenElement();
+			ClayUnsafe.OpenElement();
 
 
-			string id = String.Intern("Test");
-			fixed (char* idp = id)
-			{
-				var length = Encoding.UTF8.GetByteCount(id);
-				ClayInterop.Clay__AttachId(
-					ClayInterop.Clay__HashString(new Clay_String { chars = (sbyte*)idp, length = length }, (uint)i, 0));
-			}
+			// string id = String.Intern("Test");
+			// var bytes = Utils.ToSpanOwner(id);
+			// fixed (byte* idp = bytes.Span)
+			// {
+				// var length = Encoding.UTF8.GetByteCount(id);
+				// ClayInterop.Clay__AttachId(
+					// ClayInterop.Clay__HashString(new Clay_String { chars = (sbyte*)idp, length = bytes.Length }, (uint)i, 0));
+			// }
 
-			ClayInterop.Clay__AttachLayoutConfig(ClayInterop.Clay__StoreLayoutConfig(new Clay_LayoutConfig
+			ClayUnsafe.Layout(new Clay_LayoutConfig
 			{
 				padding = new Clay_Padding
 				{
@@ -114,17 +115,14 @@ unsafe
 						}
 					},
 				}
-			}));
-			ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
+			});
+			ClayUnsafe.Rectangle(new Clay_RectangleElementConfig
 			{
-				rectangleElementConfig = ClayInterop.Clay__StoreRectangleElementConfig(new Clay_RectangleElementConfig
-				{
-					color = new Clay_Color { r = 255, a = 255 },
-				})
-			}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_RECTANGLE);
-			ClayInterop.Clay__ElementPostConfiguration();
+				color = new Clay_Color { r = 255, a = 255 },
+			});
+			ClayUnsafe.ElementPostConfiguration();
 
-			ClayInterop.Clay__CloseElement();
+			ClayUnsafe.CloseElement();
 		}
 
 
@@ -141,6 +139,3 @@ unsafe
 	ClayUnsafe.FreeArena(arena);
 	Console.WriteLine("~ fin ~");
 }
-
-
-delegate void ErrorCallback(Clay_ErrorData data, dynamic userData);

@@ -45,14 +45,32 @@ public static class ClayUnsafe
 	}
 
 	private static byte ToByte(bool b) => b ? (byte)1 : (byte)0;
+	private static bool FromByte(byte b) => b != 0;
 
 	public static void SetDebugModeEnabled(bool state)
 	{
 		ClayInterop.Clay_SetDebugModeEnabled(ToByte(state));
 	}
 
-	public static void BeginLayout() => ClayInterop.Clay_BeginLayout();
-	public static Clay_RenderCommandArray EndLayout() => ClayInterop.Clay_EndLayout();
+	public static bool IsDebugModeEnabled()
+	{
+		return FromByte(ClayInterop.Clay_IsDebugModeEnabled());
+	}
+
+	public static void BeginLayout()
+	{
+		ClayInterop.Clay_BeginLayout();
+	}
+
+	public static Clay_RenderCommandArray EndLayout()
+	{
+		return ClayInterop.Clay_EndLayout();
+	}
+
+	public static unsafe Clay_RenderCommand* RenderCommandArrayGet(Clay_RenderCommandArray arr, int index)
+	{
+		return ClayInterop.Clay_RenderCommandArray_Get(&arr, index);
+	}
 
 	public static void SetPointerState(Clay_Vector2 position, bool isMouseDown)
 	{
@@ -69,13 +87,79 @@ public static class ClayUnsafe
 		ClayInterop.Clay_SetLayoutDimensions(dimensions);
 	}
 
+	public static void OpenElement()
+	{
+		ClayInterop.Clay__OpenElement();
+	}
+
+	public static void ElementPostConfiguration()
+	{
+		ClayInterop.Clay__ElementPostConfiguration();
+	}
+
+	public static void CloseElement()
+	{
+		ClayInterop.Clay__CloseElement();
+	}
+
 	public static unsafe void Layout(Clay_LayoutConfig c)
 	{
 		ClayInterop.Clay__AttachLayoutConfig(ClayInterop.Clay__StoreLayoutConfig(c));
 	}
 
-	// public static unsafe void Rectangle(Clay_LayoutConfig c)
-	// {
-	// ClayInterop.Clay__AttachElementConfig(ClayUnsafe);
-	// }
+	public static unsafe void Rectangle(Clay_RectangleElementConfig c)
+	{
+		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
+		{
+			rectangleElementConfig = ClayInterop.Clay__StoreRectangleElementConfig(c)
+		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_RECTANGLE);
+	}
+
+	public static unsafe void TextElement(Clay_TextElementConfig c)
+	{
+		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
+		{
+			textElementConfig = ClayInterop.Clay__StoreTextElementConfig(c)
+		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_TEXT);
+	}
+	
+	public static unsafe void Image(Clay_ImageElementConfig c)
+	{
+		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
+		{
+			imageElementConfig = ClayInterop.Clay__StoreImageElementConfig(c)
+		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_IMAGE);
+	}
+	
+	public static unsafe void Floating(Clay_FloatingElementConfig c)
+	{
+		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
+		{
+			floatingElementConfig = ClayInterop.Clay__StoreFloatingElementConfig(c)
+		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_FLOATING_CONTAINER);
+	}
+	
+	public static unsafe void Custom(Clay_CustomElementConfig c)
+	{
+		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
+		{
+			customElementConfig = ClayInterop.Clay__StoreCustomElementConfig(c)
+		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_CUSTOM);
+	}
+	
+	public static unsafe void Scroll(Clay_ScrollElementConfig c)
+	{
+		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
+		{
+			scrollElementConfig = ClayInterop.Clay__StoreScrollElementConfig(c)
+		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_SCROLL_CONTAINER);
+	}
+	
+	public static unsafe void Border(Clay_BorderElementConfig c)
+	{
+		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
+		{
+			borderElementConfig = ClayInterop.Clay__StoreBorderElementConfig(c)
+		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_BORDER_CONTAINER);
+	}
 }
