@@ -8,7 +8,7 @@ C# wrapper for [clay layout](https://github.com/nicbarker/clay), Version parity 
 # PRE-ALPHA
 ## TODO:
 - [x] c to c# generator
-- [ ] write c# versions of the macros as a bare-bone implementation. unsafe c#
+- [x] write c# versions of the macros as a bare-bone implementation. unsafe c#
 - [ ] investigate if a more c# friendly design/naming is possible. safe c# (but don't use classes) 
 - [ ] Complete Raylib renderer implementation
 - [ ] Copy the raylib example from clay.
@@ -18,9 +18,9 @@ C# wrapper for [clay layout](https://github.com/nicbarker/clay), Version parity 
 - [ ] Make a nuget package.
 - [ ] Add tests
 - [ ] add builder for non-windows 
+
 ## Issues:
 - [ ] currently upgrading to clay v0.12.0 does not work. Need to investigate why
-- [ ] Id generation is not working. Assume this has to do with UTF8 vs UTF16
 - [ ] scrolling is not working. need to investigate.
 
 # Building Clay.dll

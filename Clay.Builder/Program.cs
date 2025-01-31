@@ -19,13 +19,19 @@ Target("Interop", () =>
 		"--methodClassName ClayInterop",
 		"--libraryPath Clay",
 		$"-o {claycs}",
+		"--exclude *Wrapper"
 	]);
 	Run("ClangSharpPInvokeGenerator", interopArgs, workingDirectory);
 	
 	// ClangSharpPInvokeGenerator is adding a trailing '}' that breaks compilation
 	var text = File.ReadAllText(claycs);
 	var idx = text.LastIndexOf('}');
-	File.WriteAllText(claycs, text[..idx]);
+	text = text.Substring(0, idx);
+	
+	// we write wrappers for all these calls so no public access needed
+	text = text.Replace("public static unsafe partial class ClayInterop", "internal static unsafe partial class ClayInterop");
+	
+	File.WriteAllText(claycs, text);
 });
 
 Target("Dll", async () =>
@@ -36,7 +42,11 @@ Target("Dll", async () =>
 	var ZigDocPath = Environment.GetEnvironmentVariable("ZigDocPath");
 
 	// clean build
-	Directory.Delete(Path.GetDirectoryName(zigoutdll), true);
+	var oudDir = Path.GetDirectoryName(zigoutdll);
+	if (Directory.Exists(oudDir))
+	{
+		Directory.Delete(oudDir, true);
+	}
 	
 	await RunAsync("zig", "build", workingDirectory);
 	Directory.CreateDirectory(Path.GetDirectoryName(libdll));

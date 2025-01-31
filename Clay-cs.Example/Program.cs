@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Clay_cs;
@@ -21,6 +22,7 @@ unsafe
 
 	var memorySize = ClayUnsafe.MinMemorySize();
 	var arena = ClayUnsafe.CreateArena(memorySize);
+	using var stringCache = new StringCache();
 	ClayUnsafe.SetMeasureTextFunction(RaylibClay.MeasureText);
 
 	var dimensions = new Clay_Dimensions
@@ -64,17 +66,7 @@ unsafe
 		for (var i = 0; i < 25; i++)
 		{
 			ClayUnsafe.OpenElement();
-
-
-			// string id = String.Intern("Test");
-			// var bytes = Utils.ToSpanOwner(id);
-			// fixed (byte* idp = bytes.Span)
-			// {
-				// var length = Encoding.UTF8.GetByteCount(id);
-				// ClayInterop.Clay__AttachId(
-					// ClayInterop.Clay__HashString(new Clay_String { chars = (sbyte*)idp, length = bytes.Length }, (uint)i, 0));
-			// }
-
+			ClayUnsafe.Id("Test", i);
 			ClayUnsafe.Layout(new Clay_LayoutConfig
 			{
 				padding = new Clay_Padding

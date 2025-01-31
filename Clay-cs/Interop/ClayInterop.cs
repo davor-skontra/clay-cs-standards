@@ -690,7 +690,7 @@ public unsafe partial struct Clay_String
         public Clay_ErrorHandler wrapped;
     }
 
-    public static unsafe partial class ClayInterop
+    internal static unsafe partial class ClayInterop
     {
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("uint32_t")]
