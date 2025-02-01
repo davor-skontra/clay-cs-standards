@@ -2,10 +2,19 @@ namespace Clay_cs;
 
 public struct ClayElement : IDisposable
 {
-	public ClayElement(ClayConfig config)
+	public static ClayElement Open()
 	{
 		Clay.OpenElement();
+		return new ClayElement();
+	}
+	
+	public static ClayElement OpenAndSubmit(ClayConfig config)
+	{
+		return Open().SetConfig(config).Submit();
+	}
 
+	public ClayElement SetConfig(ClayConfig config)
+	{
 		if (config.Id.HasValue)
 		{
 			var id = config.Id.Value;
@@ -19,7 +28,13 @@ public struct ClayElement : IDisposable
 		if (config.Border.HasValue) Clay.Border(config.Border.Value);
 		if (config.Floating.HasValue) Clay.Floating(config.Floating.Value);
 		if (config.Scroll.HasValue) Clay.Scroll(config.Scroll.Value);
+		return this;
+	}
+
+	public ClayElement Submit()
+	{
 		Clay.ElementPostConfiguration();
+		return this;
 	}
 
 	public void Dispose()

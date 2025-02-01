@@ -9,10 +9,10 @@ public struct ClayId
 	public uint Seed;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static ClayId Global(string id) => Create(Clay.StringCache[id]);
+	public static ClayId Global(string id) => Create(Clay.ClayStrings[id]);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static ClayId Global(string id, int offset) => Create(Clay.StringCache[id], offset);
+	public static ClayId Global(string id, int offset) => Create(Clay.ClayStrings[id], offset);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static ClayId Global(Clay_String id) => Create(id);
@@ -21,10 +21,10 @@ public struct ClayId
 	public static ClayId Global(Clay_String id, int offset) => Create(id, offset);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static ClayId Local(string id) => Create(Clay.StringCache[id], seed: Clay.GetParentElementId());
+	public static ClayId Local(string id) => Create(Clay.ClayStrings[id], seed: Clay.GetParentElementId());
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static ClayId Local(string id, int offset) => Create(Clay.StringCache[id], offset, Clay.GetParentElementId());
+	public static ClayId Local(string id, int offset) => Create(Clay.ClayStrings[id], offset, Clay.GetParentElementId());
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static ClayId Local(Clay_String id) => Create(id, seed: Clay.GetParentElementId());

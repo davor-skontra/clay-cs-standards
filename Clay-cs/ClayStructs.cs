@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Clay_cs;
@@ -25,7 +26,7 @@ public partial struct Clay_SizingAxis
 	public static Clay_SizingAxis Grow(float min, float max) => new()
 	{
 		type = Clay__SizingType.CLAY__SIZING_TYPE_GROW,
-		size = new _size_e__Union
+		size = new ClaySizingUnion
 		{
 			minMax = new Clay_SizingMinMax
 			{
@@ -40,7 +41,7 @@ public partial struct Clay_SizingAxis
 		return new Clay_SizingAxis
 		{
 			type = Clay__SizingType.CLAY__SIZING_TYPE_FIT,
-			size = new _size_e__Union
+			size = new ClaySizingUnion
 			{
 				minMax = new Clay_SizingMinMax
 				{
@@ -54,7 +55,7 @@ public partial struct Clay_SizingAxis
 	public static Clay_SizingAxis Fixed(float size) => new()
 	{
 		type = Clay__SizingType.CLAY__SIZING_TYPE_FIXED,
-		size = new _size_e__Union
+		size = new ClaySizingUnion
 		{
 			minMax = new Clay_SizingMinMax
 			{
@@ -68,7 +69,7 @@ public partial struct Clay_SizingAxis
 	public static Clay_SizingAxis Percent(float percent) => new()
 	{
 		type = Clay__SizingType.CLAY__SIZING_TYPE_PERCENT,
-		size = new _size_e__Union
+		size = new ClaySizingUnion
 		{
 			percent = percent,
 		}
@@ -138,4 +139,10 @@ public partial struct Clay_ChildAlignment
 		this.x = x;
 		this.y = y;
 	}
+}
+
+public partial struct Clay_Vector2
+{
+	public static implicit operator Clay_Vector2(Vector2 v) => new Clay_Vector2 { x = v.X, y = v.Y };
+	public static implicit operator Vector2(Clay_Vector2 v) => new Vector2(v.x, v.y);
 }

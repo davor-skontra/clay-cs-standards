@@ -1,16 +1,52 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 
+[assembly: DisableRuntimeMarshalling]
 namespace Clay_cs;
 
 public unsafe delegate Clay_Dimensions ClayMeasureTextDelegate(Clay_String* text, Clay_TextElementConfig* config);
 
 public delegate void ClayErrorDelegate(Clay_ErrorData data);
 
+public delegate void ClayOnHoverDelegate(Clay_ElementId id, Clay_PointerData data, nint userData);
+
+public delegate Clay_Vector2 ClayQueryScrollOffsetDelegate(uint elementId);
+
 public static class Clay
 {
-	internal static readonly StringCache StringCache = new();
+	internal static readonly ClayStringCollection ClayStrings = new();
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static int GetMaxElementCount()
+	{
+		return ClayInterop.Clay_GetMaxElementCount();
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void SetMaxElementCount(int maxElementCount)
+	{
+		ClayInterop.Clay_SetMaxElementCount(maxElementCount);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static int GetMaxMeasureTextCacheWordCount()
+	{
+		return ClayInterop.Clay_GetMaxMeasureTextCacheWordCount();
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void SetMaxMeasureTextCacheWordCount(int maxMeasureTextCacheWordCount)
+	{
+		ClayInterop.Clay_SetMaxMeasureTextCacheWordCount(maxMeasureTextCacheWordCount);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void ResetMeasureTextCache()
+	{
+		ClayInterop.Clay_ResetMeasureTextCache();
+	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static uint MinMemorySize() => ClayInterop.Clay_MinMemorySize();
@@ -24,6 +60,18 @@ public static class Clay
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static unsafe Clay_Context* GetCurrentContext()
+	{
+		return ClayInterop.Clay_GetCurrentContext();
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static unsafe void SetCurrentContext(Clay_Context* context)
+	{
+		ClayInterop.Clay_SetCurrentContext(context);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static unsafe void SetMeasureTextFunction(ClayMeasureTextDelegate measureText)
 	{
 		// TODO: do we need to dealloc the ptr?
@@ -32,11 +80,12 @@ public static class Clay
 		ClayInterop.Clay_SetMeasureTextFunction(castPtr);
 	}
 
-	public static unsafe void Initialize(ClayArenaHandle handle, Clay_Dimensions dimensions,
+	public static unsafe void Initialize(
+		ClayArenaHandle handle,
+		Clay_Dimensions dimensions,
 		ClayErrorDelegate errorHandler)
 	{
 		// TODO: handle userdata
-		// TODO: do we need to dealloc the ptr?
 		var ptr = Marshal.GetFunctionPointerForDelegate(errorHandler);
 		var castPtr = (delegate* unmanaged[Cdecl]<Clay_ErrorData, void>)ptr;
 
@@ -49,19 +98,19 @@ public static class Clay
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static void SetCullingEnabled(bool state)
 	{
-		ClayInterop.Clay_SetCullingEnabled(state.AsByte());
+		ClayInterop.Clay_SetCullingEnabled(state);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static void SetDebugModeEnabled(bool state)
 	{
-		ClayInterop.Clay_SetDebugModeEnabled(state.AsByte());
+		ClayInterop.Clay_SetDebugModeEnabled(state);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsDebugModeEnabled()
 	{
-		return ClayInterop.Clay_IsDebugModeEnabled().AsBool();
+		return ClayInterop.Clay_IsDebugModeEnabled();
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -83,33 +132,47 @@ public static class Clay
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void SetPointerState(Clay_Vector2 position, bool isMouseDown)
+	public static void SetPointerState(Vector2 position, bool isMouseDown)
 	{
-		ClayInterop.Clay_SetPointerState(position, isMouseDown.AsByte());
+		ClayInterop.Clay_SetPointerState(position, isMouseDown);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsPointerOver(Clay_ElementId elementId)
 	{
-		return ClayInterop.Clay_PointerOver(elementId).AsBool();
+		return ClayInterop.Clay_PointerOver(elementId);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsHovered()
 	{
-		return ClayInterop.Clay_Hovered().AsBool();
+		return ClayInterop.Clay_Hovered();
 	}
 
-	// public static void Clay_OnHover([NativeTypeName("void (*)(Clay_ElementId, Clay_PointerData, intptr_t)")] delegate* unmanaged[Cdecl]<Clay_ElementId, Clay_PointerData, nint, void> onHoverFunction, [NativeTypeName("intptr_t")] nint userData)
-	// {
-	// 	
-	// }
-	//
+	public static unsafe void OnHover(ClayOnHoverDelegate onHover, nint userData = 0)
+	{
+		var ptr = Marshal.GetFunctionPointerForDelegate(onHover);
+		var castPtr = (delegate* unmanaged[Cdecl]<Clay_ElementId, Clay_PointerData, nint, void>)ptr;
+		ClayInterop.Clay_OnHover(castPtr, userData);
+	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void UpdateScrollContainers(bool enableDragScrolling, Clay_Vector2 moveDelta, float timeDelta)
+	public static Clay_ScrollContainerData GetScrollContainerData(Clay_ElementId id)
 	{
-		ClayInterop.Clay_UpdateScrollContainers(enableDragScrolling.AsByte(), moveDelta, timeDelta);
+		return ClayInterop.Clay_GetScrollContainerData(id);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static void UpdateScrollContainers(bool enableDragScrolling, Vector2 moveDelta, float timeDelta)
+	{
+		ClayInterop.Clay_UpdateScrollContainers(enableDragScrolling, moveDelta, timeDelta);
+	}
+
+	public static unsafe void SetQueryScrollOffsetFunction(ClayQueryScrollOffsetDelegate queryScrollOffsetFunction)
+	{
+		var ptr = Marshal.GetFunctionPointerForDelegate(queryScrollOffsetFunction);
+		var castPtr = (delegate* unmanaged[Cdecl]<uint, Clay_Vector2>)ptr;
+		ClayInterop.Clay_SetQueryScrollOffsetFunction(castPtr);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -145,7 +208,7 @@ public static class Clay
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static void OpenTextElement(string text, Clay_TextElementConfig c)
 	{
-		OpenTextElement(StringCache.GetClayString(text), c);
+		OpenTextElement(ClayStrings.Get(text), c);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -175,7 +238,7 @@ public static class Clay
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static void Id(string text)
 	{
-		Id(StringCache.GetClayString(text));
+		Id(ClayStrings.Get(text));
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -187,7 +250,7 @@ public static class Clay
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static void Id(string text, int offset)
 	{
-		Id(StringCache.GetClayString(text), offset);
+		Id(ClayStrings.Get(text), offset);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -199,7 +262,7 @@ public static class Clay
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static void IdLocal(string text)
 	{
-		IdLocal(StringCache.GetClayString(text));
+		IdLocal(ClayStrings.Get(text));
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -211,7 +274,7 @@ public static class Clay
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static void IdLocal(string text, int offset)
 	{
-		IdLocal(StringCache.GetClayString(text), offset);
+		IdLocal(ClayStrings.Get(text), offset);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
