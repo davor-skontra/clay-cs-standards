@@ -9,7 +9,7 @@ C# wrapper for [clay layout](https://github.com/nicbarker/clay), Version parity 
 ## TODO:
 - [x] c to c# generator
 - [x] write c# versions of the macros as a bare-bone implementation. unsafe c#
-- [ ] investigate if a more c# friendly design/naming is possible. safe c# (but don't use classes) 
+- [ ] investigate if a more c# friendly design/naming is possible. make safe c#?. Avoid classes. 
 - [ ] Complete Raylib renderer implementation
 - [ ] Copy the raylib example from clay.
 - [ ] check AOT compatibility.
@@ -21,7 +21,6 @@ C# wrapper for [clay layout](https://github.com/nicbarker/clay), Version parity 
 
 ## Issues:
 - [ ] currently upgrading to clay v0.12.0 does not work. Need to investigate why
-- [ ] scrolling is not working. need to investigate.
 
 # Building Clay.dll
 

@@ -62,7 +62,7 @@ public static class RaylibClay
 	{
 		for (int i = 0; i < array.length; i++)
 		{
-			var renderCommand = ClayUnsafe.RenderCommandArrayGet(array, i);
+			var renderCommand = Clay.RenderCommandArrayGet(array, i);
 			Clay_BoundingBox boundingBox = renderCommand->boundingBox;
 
 			switch (renderCommand->commandType)

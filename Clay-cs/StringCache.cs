@@ -47,4 +47,6 @@ public readonly struct StringCache() : IDisposable
 	{
 		Clear();
 	}
+
+	public Clay_String this[string str] => GetClayString(str);
 }

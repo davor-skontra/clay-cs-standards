@@ -6,3 +6,5 @@ riderModule.iml
 .idea
 */.zig-cache
 Clay.Builder/zig-out
+.vs
+*.DotSettings.user
