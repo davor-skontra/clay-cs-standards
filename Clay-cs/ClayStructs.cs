@@ -146,3 +146,12 @@ public partial struct Clay_Vector2
 	public static implicit operator Clay_Vector2(Vector2 v) => new Clay_Vector2 { x = v.X, y = v.Y };
 	public static implicit operator Vector2(Clay_Vector2 v) => new Vector2(v.x, v.y);
 }
+
+public partial struct Clay_Dimensions
+{
+	public Clay_Dimensions(float width, float height)
+	{
+		this.width = width;
+		this.height = height;
+	}
+}

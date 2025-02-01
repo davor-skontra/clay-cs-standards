@@ -1,14 +1,3 @@
-# Clay-cs
-
-c# binding for [clay.h](https://github.com/nicbarker/clay), an intimidate mode ui layout library with css-like styling. 
-The binding has version parity up to 0.11.0
-
-This README will focus on the c# syntax. for a more complete documentation pages I would recommend checking the clay GitHub. 
-
-## Quickstart
-Example using RayLib as renderer
-The repo also contains a c# copy of the [video example](https://www.youtube.com/watch?v=DYWTw19_8r4) 
-```cs
 using ZeroElectric.Vinculum;
 
 namespace Clay_cs.Example.Examples;
@@ -77,37 +66,3 @@ public class QuickStart
 		Console.WriteLine($"{data.errorType}: {data.errorText.ToCSharpString()}");
 	}
 }
-```
-
-# Install
-
-> make and link to nuget or release symbols
-
----
-
-# Building Clay.dll
-
-## Requisites
-- ClangSharp needs to be installed as a global tool: https://github.com/dotnet/ClangSharp
-- Zig needs to be part of your PATH: https://ziglang.org/download/
-
-## Building
-- Copy clay.h from the [clay repo](https://github.com/nicbarker/clay) to `Clay.Builder/src/clay.h`
-- Ensure the presence off / Add back DLL_EXPORT at the top
-```c 
-  #ifdef CLAY_DLL
-  #define CLAY_DLL_EXPORT() __declspec(dllexport) __stdcall
-  #else
-  #define CLAY_DLL_EXPORT(null)
-  #endif
-```
-- Ensure the presence off / Add back CLAY_DLL_EXPORT
-  - to all public methods under `// Public API functions ---`
-  - to all internal methods under `// Internal API functions required by macros`. This is required so we can recreate the macros.
-- open Clay.Builder.csproj
-- run the project. 
-- Clay.dll and the interop files will be copied to their needed destinations in `Clay-cs`
-
-## Verify Clay.Dll
-
-You can use a tool like [Dependencies](https://github.com/lucasg/Dependencies) to check if all needed c methods are listed in the Clay.dll
