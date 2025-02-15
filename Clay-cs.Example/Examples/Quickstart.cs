@@ -31,14 +31,11 @@ public class QuickStart
 			// build your layout
 			Clay.BeginLayout();
 
-			using (ClayElement.OpenAndSubmit(new()
+			using (ClayElement.OpenAndConfigure(new()
 			{
-				Id = "QuickStart",
-				Rectangle = new()
-				{
-					color = new Clay_Color(25, 0, 25)
-				},
-				Layout = new()
+				id = Clay.Id("QuickStart"),
+				backgroundColor = new Clay_Color(25, 0, 25),
+				layout = new()
 				{
 					sizing = new Clay_Sizing(Clay_SizingAxis.Fixed(100), Clay_SizingAxis.Grow())
 				}

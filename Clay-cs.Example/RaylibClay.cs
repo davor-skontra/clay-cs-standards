@@ -20,9 +20,9 @@ public static class RaylibClay
 		a = (byte)MathF.Round(color.a),
 	};
 
-	public static unsafe Clay_Dimensions MeasureText(Clay_String* str, Clay_TextElementConfig* config)
+	public static unsafe Clay_Dimensions MeasureText(Clay_StringSlice slice, Clay_TextElementConfig* config, void* userData)
 	{
-		var text = str->ToCSharpString();
+		var text = slice.ToCSharpString();
 		
 		// valid font?
 		if (config->fontId > Fonts.Length) return default;
@@ -35,9 +35,9 @@ public static class RaylibClay
 		float maxTextWidth = 0;
 		float currentTextWidth = 0;
 
-		for (int i = 0; i < str->length; i++)
+		for (int i = 0; i < slice.length; i++)
 		{
-			var ch = str->chars[i];
+			var ch = slice.chars[i];
 			if (ch == '\n')
 			{
 				maxTextWidth = Math.Max(maxTextWidth, currentTextWidth);
@@ -45,7 +45,7 @@ public static class RaylibClay
 				continue;
 			}
 
-			int index = str->chars[i] - 32;
+			int index = slice.chars[i] - 32;
 			if (font.glyphs[index].advanceX != 0) currentTextWidth += font.glyphs[index].advanceX;
 			else currentTextWidth += font.recs[index].width + font.glyphs[index].offsetX;
 		}
@@ -71,14 +71,14 @@ public static class RaylibClay
 					break;
 				case Clay_RenderCommandType.CLAY_RENDER_COMMAND_TYPE_RECTANGLE:
 				{
-					var config = renderCommand->config.rectangleElementConfig;
+					var config = renderCommand->renderData.rectangle;
 
 					var box = new Rectangle(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
-					var color = ToColor(config->color);
+					var color = ToColor(config.backgroundColor);
 
-					if (config->cornerRadius.topLeft > 0)
+					if (config.cornerRadius.topLeft > 0)
 					{
-						float radius = (config->cornerRadius.topLeft * 2) /
+						float radius = (config.cornerRadius.topLeft * 2) /
 						               (float)((boundingBox.width > boundingBox.height) ? boundingBox.height : boundingBox.width);
 						Raylib.DrawRectangleRounded(box, radius, 8, color);
 					}
@@ -94,18 +94,18 @@ public static class RaylibClay
 					break;
 				case Clay_RenderCommandType.CLAY_RENDER_COMMAND_TYPE_TEXT:
 				{
-					var asStr = renderCommand->text.ToCSharpString();
-					var span = renderCommand->text.ToSpanOwner();
-					var font = Fonts[renderCommand->config.textElementConfig->fontId];
+					var asStr = renderCommand->renderData.text.stringContents.ToCSharpString();
+					var span = renderCommand->renderData.text.stringContents.ToSpanOwner();
+					var font = Fonts[renderCommand->renderData.text.fontId];
 
 					try
 					{
 						Raylib.DrawTextEx(
 							font, span.AsPtr(),
 							new Vector2(boundingBox.x, boundingBox.y),
-							renderCommand->config.textElementConfig->fontSize,
-							renderCommand->config.textElementConfig->letterSpacing,
-							ToColor(renderCommand->config.textElementConfig->textColor)
+							renderCommand->renderData.text.fontSize,
+							renderCommand->renderData.text.letterSpacing,
+							ToColor(renderCommand->renderData.text.textColor)
 						);
 					}
 					finally
@@ -116,7 +116,7 @@ public static class RaylibClay
 				}
 				case Clay_RenderCommandType.CLAY_RENDER_COMMAND_TYPE_IMAGE:
 				{
-					Texture texture = *(Texture*)renderCommand->config.imageElementConfig->imageData;
+					Texture texture = *(Texture*)renderCommand->renderData.image.imageData;
 					Raylib.DrawTextureEx(texture,
 						new Vector2(boundingBox.x, boundingBox.y),
 						0,

@@ -16,12 +16,7 @@ public class IntroducingClay : IDisposable
 
 	private int _selectedDocumentIndex;
 
-
-	private Clay_RectangleElementConfig _contentBackgroundConfig = new()
-	{
-		color = new Clay_Color(90, 90, 90),
-		cornerRadius = Clay_CornerRadius.All(8)
-	};
+	private Clay_Color _contentBackgroundColor = new Clay_Color(90, 90, 90);
 
 	void ErrorHandler(Clay_ErrorData data)
 	{
@@ -84,14 +79,11 @@ public class IntroducingClay : IDisposable
 
 			Clay.BeginLayout();
 
-			using (ClayElement.OpenAndSubmit(new()
+			using (ClayElement.OpenAndConfigure(new()
 			{
-				Id = _clayString["OuterContainer"],
-				Rectangle = new()
-				{
-					color = new Clay_Color(43, 41, 51)
-				},
-				Layout = new()
+				id = Clay.Id(_clayString["OuterContainer"]),
+				backgroundColor = new Clay_Color(43, 41, 51),
+				layout = new()
 				{
 					layoutDirection = Clay_LayoutDirection.CLAY_TOP_TO_BOTTOM,
 					sizing = new Clay_Sizing(Clay_SizingAxis.Grow(), Clay_SizingAxis.Grow()),
@@ -100,11 +92,12 @@ public class IntroducingClay : IDisposable
 				}
 			}))
 			{
-				using (ClayElement.OpenAndSubmit(new()
+				using (ClayElement.OpenAndConfigure(new()
 				{
-					Id = _clayString["HeaderBar"],
-					Rectangle = _contentBackgroundConfig,
-					Layout = new()
+					id = Clay.Id(_clayString["HeaderBar"]),
+					backgroundColor = _contentBackgroundColor,
+					cornerRadius =  Clay_CornerRadius.All(8),
+					layout = new()
 					{
 						sizing = new Clay_Sizing(Clay_SizingAxis.Grow(), Clay_SizingAxis.Fixed(60)),
 						padding = Clay_Padding.Hor(16),
@@ -116,18 +109,15 @@ public class IntroducingClay : IDisposable
 					var fileButtonStr = _clayString["FileButton"];
 					var fileMenuStr = _clayString["FileMenu"];
 
-					using (ClayElement.OpenAndSubmit(new()
+					using (ClayElement.OpenAndConfigure(new()
 					{
-						Id = fileButtonStr,
-						Layout = new()
+						id = Clay.Id(fileButtonStr),
+						layout = new()
 						{
 							padding = Clay_Padding.HorVer(16, 8)
 						},
-						Rectangle = new()
-						{
-							color = new Clay_Color(140, 140, 140),
-							cornerRadius = Clay_CornerRadius.All(5),
-						}
+						backgroundColor = new Clay_Color(140, 140, 140),
+						cornerRadius = Clay_CornerRadius.All(5),
 					}))
 					{
 						Clay.OpenTextElement("File", new()
@@ -141,34 +131,32 @@ public class IntroducingClay : IDisposable
 
 						if (isMenuVisible)
 						{
-							using (ClayElement.OpenAndSubmit(new()
+							using (ClayElement.OpenAndConfigure(new()
 							{
-								Id = fileMenuStr,
-								Floating = new()
+								id = Clay.Id(fileMenuStr),
+								floating = new()
 								{
-									attachment = new Clay_FloatingAttachPoints
+									attachTo = Clay_FloatingAttachToElement.CLAY_ATTACH_TO_PARENT,
+									attachPoints = new Clay_FloatingAttachPoints
 									{
 										parent = Clay_FloatingAttachPointType.CLAY_ATTACH_POINT_LEFT_BOTTOM,
 									}
 								},
-								Layout = new()
+								layout = new()
 								{
 									padding = Clay_Padding.Ver(8),
 								}
 							}))
 							{
-								using (ClayElement.OpenAndSubmit(new()
+								using (ClayElement.OpenAndConfigure(new()
 								{
-									Layout = new()
+									layout = new()
 									{
 										layoutDirection = Clay_LayoutDirection.CLAY_TOP_TO_BOTTOM,
 										sizing = new Clay_Sizing(Clay_SizingAxis.Fixed(200), default),
 									},
-									Rectangle = new()
-									{
-										color = new Clay_Color(40, 40, 40),
-										cornerRadius = Clay_CornerRadius.All(8),
-									}
+									backgroundColor = new Clay_Color(40, 40, 40),
+									cornerRadius = Clay_CornerRadius.All(8),
 								}))
 								{
 									RenderDropdownMenuItem(_clayString["New"]);
@@ -180,9 +168,9 @@ public class IntroducingClay : IDisposable
 					}
 
 					RenderHeaderButton(_clayString["Edit"]);
-					using (ClayElement.OpenAndSubmit(new()
+					using (ClayElement.OpenAndConfigure(new()
 					{
-						Layout = new()
+						layout = new()
 						{
 							sizing = new Clay_Sizing(Clay_SizingAxis.Grow(), Clay_SizingAxis.Grow())
 						}
@@ -196,21 +184,21 @@ public class IntroducingClay : IDisposable
 					RenderHeaderButton(_clayString["Upload"]);
 				}
 
-				using (ClayElement.OpenAndSubmit(new()
+				using (ClayElement.OpenAndConfigure(new()
 				{
-					Id = _clayString["LowerContent"],
-					Layout = new()
+					id = Clay.Id(_clayString["LowerContent"]),
+					layout = new()
 					{
 						sizing = new Clay_Sizing(Clay_SizingAxis.Grow(), Clay_SizingAxis.Grow()),
 						childGap = 16,
 					}
 				}))
 				{
-					using (ClayElement.OpenAndSubmit(new()
+					using (ClayElement.OpenAndConfigure(new()
 					{
-						Id = _clayString["Sidebar"],
-						Rectangle = _contentBackgroundConfig,
-						Layout = new()
+						id = Clay.Id(_clayString["Sidebar"]),
+						backgroundColor = _contentBackgroundColor,
+						layout = new()
 						{
 							layoutDirection = Clay_LayoutDirection.CLAY_TOP_TO_BOTTOM,
 							padding = Clay_Padding.All(16),
@@ -231,14 +219,11 @@ public class IntroducingClay : IDisposable
 
 							if (documentIndex == _selectedDocumentIndex)
 							{
-								using (ClayElement.OpenAndSubmit(new()
+								using (ClayElement.OpenAndConfigure(new()
 								{
-									Layout = sidebarButtonLayout,
-									Rectangle = new()
-									{
-										color = new Clay_Color(120, 120, 120, 255),
-										cornerRadius = Clay_CornerRadius.All(8),
-									}
+									layout = sidebarButtonLayout,
+									backgroundColor = new Clay_Color(120, 120, 120, 255),
+									cornerRadius = Clay_CornerRadius.All(8),
 								}))
 								{
 									Clay.OpenTextElement(document.Title, new()
@@ -251,18 +236,14 @@ public class IntroducingClay : IDisposable
 							else
 							{
 								using (ClayElement.Open()
-									.SetConfig(new()
+									.Configure(new()
 									{
-										Layout = sidebarButtonLayout,
-										Rectangle = Clay.IsHovered() == false
+										layout = sidebarButtonLayout,
+										backgroundColor = Clay.IsHovered() == false
 											? default
-											: new()
-											{
-												color = new Clay_Color(120, 120, 120, 255),
-												cornerRadius = Clay_CornerRadius.All(8),
-											}
+											: new Clay_Color(120, 120, 120, 255),
+										cornerRadius = Clay_CornerRadius.All(8),
 									})
-									.Submit()
 								)
 								{
 									var index = documentIndex;
@@ -283,21 +264,21 @@ public class IntroducingClay : IDisposable
 						}
 					}
 
-					using (ClayElement.OpenAndSubmit(new()
+					using (ClayElement.OpenAndConfigure(new()
 					{
-						Id = _clayString["MainContent"],
-						Scroll = new()
+						id = Clay.Id(_clayString["MainContent"]),
+						scroll = new()
 						{
 							vertical = true
 						},
-						Layout = new()
+						layout = new()
 						{
 							layoutDirection = Clay_LayoutDirection.CLAY_TOP_TO_BOTTOM,
 							childGap = 16,
 							padding = Clay_Padding.All(16),
 							sizing = new Clay_Sizing(Clay_SizingAxis.Grow(), Clay_SizingAxis.Grow())
 						},
-						Rectangle = _contentBackgroundConfig,
+						backgroundColor = _contentBackgroundColor,
 					}))
 					{
 						var doc = _documents[_selectedDocumentIndex];
@@ -327,17 +308,14 @@ public class IntroducingClay : IDisposable
 
 	private void RenderHeaderButton(Clay_String text)
 	{
-		using (ClayElement.OpenAndSubmit(new()
+		using (ClayElement.OpenAndConfigure(new()
 		{
-			Layout = new()
+			layout = new()
 			{
 				padding = Clay_Padding.HorVer(16, 8),
 			},
-			Rectangle = new()
-			{
-				color = new Clay_Color(140, 140, 140),
-				cornerRadius = Clay_CornerRadius.All(5),
-			}
+			backgroundColor = new Clay_Color(140, 140, 140),
+			cornerRadius = Clay_CornerRadius.All(5),
 		}))
 		{
 			Clay.OpenTextElement(text, new Clay_TextElementConfig
@@ -350,9 +328,9 @@ public class IntroducingClay : IDisposable
 
 	private void RenderDropdownMenuItem(Clay_String text)
 	{
-		using (ClayElement.OpenAndSubmit(new()
+		using (ClayElement.OpenAndConfigure(new()
 		{
-			Layout = new()
+			layout = new()
 			{
 				padding = Clay_Padding.All(16),
 			}

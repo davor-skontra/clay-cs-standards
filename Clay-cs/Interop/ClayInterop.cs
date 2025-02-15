@@ -11,6 +11,18 @@ public unsafe partial struct Clay_String
     public sbyte* chars;
 }
 
+    public unsafe partial struct Clay_StringSlice
+    {
+        [NativeTypeName("int32_t")]
+        public int length;
+
+        [NativeTypeName("const char *")]
+        public sbyte* chars;
+
+        [NativeTypeName("const char *")]
+        public sbyte* baseChars;
+    }
+
     public partial struct Clay_Context
     {
     }
@@ -89,19 +101,6 @@ public unsafe partial struct Clay_String
     }
 
     [NativeTypeName("uint8_t")]
-    public enum Clay__ElementConfigType : byte
-    {
-        CLAY__ELEMENT_CONFIG_TYPE_NONE = 0,
-        CLAY__ELEMENT_CONFIG_TYPE_RECTANGLE = 1,
-        CLAY__ELEMENT_CONFIG_TYPE_BORDER_CONTAINER = 2,
-        CLAY__ELEMENT_CONFIG_TYPE_FLOATING_CONTAINER = 4,
-        CLAY__ELEMENT_CONFIG_TYPE_SCROLL_CONTAINER = 8,
-        CLAY__ELEMENT_CONFIG_TYPE_IMAGE = 16,
-        CLAY__ELEMENT_CONFIG_TYPE_TEXT = 32,
-        CLAY__ELEMENT_CONFIG_TYPE_CUSTOM = 64,
-    }
-
-    [NativeTypeName("uint8_t")]
     public enum Clay_LayoutDirection : byte
     {
         CLAY_LEFT_TO_RIGHT,
@@ -149,7 +148,7 @@ public unsafe partial struct Clay_String
 
     public partial struct Clay_SizingAxis
     {
-        [NativeTypeName("__AnonymousRecord_clay_L287_C5")]
+        [NativeTypeName("__AnonymousRecord_clay_L288_C5")]
         public ClaySizingUnion size;
 
         public Clay__SizingType type;
@@ -201,18 +200,20 @@ public unsafe partial struct Clay_String
         public Clay_LayoutDirection layoutDirection;
     }
 
-    public partial struct Clay_RectangleElementConfig
-    {
-        public Clay_Color color;
-
-        public Clay_CornerRadius cornerRadius;
-    }
-
-    public enum Clay_TextElementConfigWrapMode
+    [NativeTypeName("uint8_t")]
+    public enum Clay_TextElementConfigWrapMode : byte
     {
         CLAY_TEXT_WRAP_WORDS,
         CLAY_TEXT_WRAP_NEWLINES,
         CLAY_TEXT_WRAP_NONE,
+    }
+
+    [NativeTypeName("uint8_t")]
+    public enum Clay_TextAlignment : byte
+    {
+        CLAY_TEXT_ALIGN_LEFT,
+        CLAY_TEXT_ALIGN_CENTER,
+        CLAY_TEXT_ALIGN_RIGHT,
     }
 
     public partial struct Clay_TextElementConfig
@@ -232,6 +233,10 @@ public unsafe partial struct Clay_String
         public ushort lineHeight;
 
         public Clay_TextElementConfigWrapMode wrapMode;
+
+        public Clay_TextAlignment textAlignment;
+
+        public bool hashStringContents;
     }
 
     public unsafe partial struct Clay_ImageElementConfig
@@ -262,10 +267,20 @@ public unsafe partial struct Clay_String
         public Clay_FloatingAttachPointType parent;
     }
 
-    public enum Clay_PointerCaptureMode
+    [NativeTypeName("uint8_t")]
+    public enum Clay_PointerCaptureMode : byte
     {
         CLAY_POINTER_CAPTURE_MODE_CAPTURE,
         CLAY_POINTER_CAPTURE_MODE_PASSTHROUGH,
+    }
+
+    [NativeTypeName("uint8_t")]
+    public enum Clay_FloatingAttachToElement : byte
+    {
+        CLAY_ATTACH_TO_NONE,
+        CLAY_ATTACH_TO_PARENT,
+        CLAY_ATTACH_TO_ELEMENT_WITH_ID,
+        CLAY_ATTACH_TO_ROOT,
     }
 
     public partial struct Clay_FloatingElementConfig
@@ -274,15 +289,17 @@ public unsafe partial struct Clay_String
 
         public Clay_Dimensions expand;
 
-        [NativeTypeName("uint16_t")]
-        public ushort zIndex;
-
         [NativeTypeName("uint32_t")]
         public uint parentId;
 
-        public Clay_FloatingAttachPoints attachment;
+        [NativeTypeName("int16_t")]
+        public short zIndex;
+
+        public Clay_FloatingAttachPoints attachPoints;
 
         public Clay_PointerCaptureMode pointerCaptureMode;
+
+        public Clay_FloatingAttachToElement attachTo;
     }
 
     public unsafe partial struct Clay_CustomElementConfig
@@ -297,59 +314,113 @@ public unsafe partial struct Clay_String
         public bool vertical;
     }
 
-    public partial struct Clay_Border
+    public partial struct Clay_BorderWidth
     {
-        [NativeTypeName("uint32_t")]
-        public uint width;
+        [NativeTypeName("uint16_t")]
+        public ushort left;
 
-        public Clay_Color color;
+        [NativeTypeName("uint16_t")]
+        public ushort right;
+
+        [NativeTypeName("uint16_t")]
+        public ushort top;
+
+        [NativeTypeName("uint16_t")]
+        public ushort bottom;
+
+        [NativeTypeName("uint16_t")]
+        public ushort betweenChildren;
     }
 
     public partial struct Clay_BorderElementConfig
     {
-        public Clay_Border left;
+        public Clay_Color color;
 
-        public Clay_Border right;
+        public Clay_BorderWidth width;
+    }
 
-        public Clay_Border top;
+    public partial struct Clay_TextRenderData
+    {
+        public Clay_StringSlice stringContents;
 
-        public Clay_Border bottom;
+        public Clay_Color textColor;
 
-        public Clay_Border betweenChildren;
+        [NativeTypeName("uint16_t")]
+        public ushort fontId;
+
+        [NativeTypeName("uint16_t")]
+        public ushort fontSize;
+
+        [NativeTypeName("uint16_t")]
+        public ushort letterSpacing;
+
+        [NativeTypeName("uint16_t")]
+        public ushort lineHeight;
+    }
+
+    public partial struct Clay_RectangleRenderData
+    {
+        public Clay_Color backgroundColor;
 
         public Clay_CornerRadius cornerRadius;
     }
 
-    [StructLayout(LayoutKind.Explicit)]
-    public unsafe partial struct Clay_ElementConfigUnion
+    public unsafe partial struct Clay_ImageRenderData
     {
-        [FieldOffset(0)]
-        public Clay_RectangleElementConfig* rectangleElementConfig;
+        public Clay_Color backgroundColor;
 
-        [FieldOffset(0)]
-        public Clay_TextElementConfig* textElementConfig;
+        public Clay_CornerRadius cornerRadius;
 
-        [FieldOffset(0)]
-        public Clay_ImageElementConfig* imageElementConfig;
+        public Clay_Dimensions sourceDimensions;
 
-        [FieldOffset(0)]
-        public Clay_FloatingElementConfig* floatingElementConfig;
-
-        [FieldOffset(0)]
-        public Clay_CustomElementConfig* customElementConfig;
-
-        [FieldOffset(0)]
-        public Clay_ScrollElementConfig* scrollElementConfig;
-
-        [FieldOffset(0)]
-        public Clay_BorderElementConfig* borderElementConfig;
+        public void* imageData;
     }
 
-    public partial struct Clay_ElementConfig
+    public unsafe partial struct Clay_CustomRenderData
     {
-        public Clay__ElementConfigType type;
+        public Clay_Color backgroundColor;
 
-        public Clay_ElementConfigUnion config;
+        public Clay_CornerRadius cornerRadius;
+
+        public void* customData;
+    }
+
+    public partial struct Clay_ScrollRenderData
+    {
+        public bool horizontal;
+
+        public bool vertical;
+    }
+
+    public partial struct Clay_BorderRenderData
+    {
+        public Clay_Color color;
+
+        public Clay_CornerRadius cornerRadius;
+
+        public Clay_BorderWidth width;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public partial struct Clay_RenderData
+    {
+        [FieldOffset(0)]
+        public Clay_RectangleRenderData rectangle;
+
+        [FieldOffset(0)]
+        public Clay_TextRenderData text;
+
+        [FieldOffset(0)]
+        public Clay_ImageRenderData image;
+
+        [FieldOffset(0)]
+        public Clay_CustomRenderData custom;
+
+        [FieldOffset(0)]
+        public Clay_BorderRenderData border;
+
+        [FieldOffset(0)]
+        public Clay_ScrollRenderData scroll;
     }
 
     public unsafe partial struct Clay_ScrollContainerData
@@ -385,16 +456,19 @@ public unsafe partial struct Clay_String
         CLAY_RENDER_COMMAND_TYPE_CUSTOM,
     }
 
-    public partial struct Clay_RenderCommand
+    public unsafe partial struct Clay_RenderCommand
     {
         public Clay_BoundingBox boundingBox;
 
-        public Clay_ElementConfigUnion config;
+        public Clay_RenderData renderData;
 
-        public Clay_String text;
+        public void* userData;
 
         [NativeTypeName("uint32_t")]
         public uint id;
+
+        [NativeTypeName("int16_t")]
+        public short zIndex;
 
         public Clay_RenderCommandType commandType;
     }
@@ -410,7 +484,8 @@ public unsafe partial struct Clay_String
         public Clay_RenderCommand* internalArray;
     }
 
-    public enum Clay_PointerDataInteractionState
+    [NativeTypeName("uint8_t")]
+    public enum Clay_PointerDataInteractionState : byte
     {
         CLAY_POINTER_DATA_PRESSED_THIS_FRAME,
         CLAY_POINTER_DATA_PRESSED,
@@ -425,7 +500,36 @@ public unsafe partial struct Clay_String
         public Clay_PointerDataInteractionState state;
     }
 
-    public enum Clay_ErrorType
+    public unsafe partial struct Clay_ElementDeclaration
+    {
+        public Clay_ElementId id;
+
+        public Clay_LayoutConfig layout;
+
+        public Clay_Color backgroundColor;
+
+        public Clay_CornerRadius cornerRadius;
+
+        public Clay_ImageElementConfig image;
+
+        public Clay_FloatingElementConfig floating;
+
+        public Clay_CustomElementConfig custom;
+
+        public Clay_ScrollElementConfig scroll;
+
+        public Clay_BorderElementConfig border;
+
+        public void* userData;
+    }
+
+    public partial struct Clay__Clay_ElementDeclarationWrapper
+    {
+        public Clay_ElementDeclaration wrapped;
+    }
+
+    [NativeTypeName("uint8_t")]
+    public enum Clay_ErrorType : byte
     {
         CLAY_ERROR_TYPE_TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED,
         CLAY_ERROR_TYPE_ARENA_CAPACITY_EXCEEDED,
@@ -433,17 +537,17 @@ public unsafe partial struct Clay_String
         CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED,
         CLAY_ERROR_TYPE_DUPLICATE_ID,
         CLAY_ERROR_TYPE_FLOATING_CONTAINER_PARENT_NOT_FOUND,
+        CLAY_ERROR_TYPE_PERCENTAGE_OVER_1,
         CLAY_ERROR_TYPE_INTERNAL_ERROR,
     }
 
-    public partial struct Clay_ErrorData
+    public unsafe partial struct Clay_ErrorData
     {
         public Clay_ErrorType errorType;
 
         public Clay_String errorText;
 
-        [NativeTypeName("uintptr_t")]
-        public nuint userData;
+        public void* userData;
     }
 
     public unsafe partial struct Clay_ErrorHandler
@@ -451,8 +555,7 @@ public unsafe partial struct Clay_String
         [NativeTypeName("void (*)(Clay_ErrorData)")]
         public delegate* unmanaged[Cdecl]<Clay_ErrorData, void> errorHandlerFunction;
 
-        [NativeTypeName("uintptr_t")]
-        public nuint userData;
+        public void* userData;
     }
 
     internal static unsafe partial class ClayInterop
@@ -462,7 +565,7 @@ public unsafe partial struct Clay_String
         public static extern uint Clay_MinMemorySize();
 
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern Clay_Arena Clay_CreateArenaWithCapacityAndMemory([NativeTypeName("uint32_t")] uint capacity, void* offset);
+        public static extern Clay_Arena Clay_CreateArenaWithCapacityAndMemory([NativeTypeName("uint32_t")] uint capacity, void* memory);
 
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void Clay_SetPointerState(Clay_Vector2 position, bool pointerDown);
@@ -510,10 +613,10 @@ public unsafe partial struct Clay_String
         public static extern Clay_ScrollContainerData Clay_GetScrollContainerData(Clay_ElementId id);
 
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void Clay_SetMeasureTextFunction([NativeTypeName("Clay_Dimensions (*)(Clay_String *, Clay_TextElementConfig *)")] delegate* unmanaged[Cdecl]<Clay_String*, Clay_TextElementConfig*, Clay_Dimensions> measureTextFunction);
+        public static extern void Clay_SetMeasureTextFunction([NativeTypeName("Clay_Dimensions (*)(Clay_StringSlice, Clay_TextElementConfig *, void *)")] delegate* unmanaged[Cdecl]<Clay_StringSlice, Clay_TextElementConfig*, void*, Clay_Dimensions> measureTextFunction, void* userData);
 
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void Clay_SetQueryScrollOffsetFunction([NativeTypeName("Clay_Vector2 (*)(uint32_t)")] delegate* unmanaged[Cdecl]<uint, Clay_Vector2> queryScrollOffsetFunction);
+        public static extern void Clay_SetQueryScrollOffsetFunction([NativeTypeName("Clay_Vector2 (*)(uint32_t, void *)")] delegate* unmanaged[Cdecl]<uint, void*, Clay_Vector2> queryScrollOffsetFunction, void* userData);
 
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern Clay_RenderCommand* Clay_RenderCommandArray_Get(Clay_RenderCommandArray* array, [NativeTypeName("int32_t")] int index);
@@ -548,49 +651,19 @@ public unsafe partial struct Clay_String
         public static extern void Clay__OpenElement();
 
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void Clay__ConfigureOpenElement([NativeTypeName("const Clay_ElementDeclaration")] Clay_ElementDeclaration config);
+
+        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void Clay__CloseElement();
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern Clay_LayoutConfig* Clay__StoreLayoutConfig(Clay_LayoutConfig config);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void Clay__ElementPostConfiguration();
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void Clay__AttachId(Clay_ElementId id);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void Clay__AttachLayoutConfig(Clay_LayoutConfig* config);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void Clay__AttachElementConfig(Clay_ElementConfigUnion config, Clay__ElementConfigType type);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern Clay_RectangleElementConfig* Clay__StoreRectangleElementConfig(Clay_RectangleElementConfig config);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern Clay_TextElementConfig* Clay__StoreTextElementConfig(Clay_TextElementConfig config);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern Clay_ImageElementConfig* Clay__StoreImageElementConfig(Clay_ImageElementConfig config);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern Clay_FloatingElementConfig* Clay__StoreFloatingElementConfig(Clay_FloatingElementConfig config);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern Clay_CustomElementConfig* Clay__StoreCustomElementConfig(Clay_CustomElementConfig config);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern Clay_ScrollElementConfig* Clay__StoreScrollElementConfig(Clay_ScrollElementConfig config);
-
-        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern Clay_BorderElementConfig* Clay__StoreBorderElementConfig(Clay_BorderElementConfig config);
 
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern Clay_ElementId Clay__HashString(Clay_String key, [NativeTypeName("uint32_t")] uint offset, [NativeTypeName("uint32_t")] uint seed);
 
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void Clay__OpenTextElement(Clay_String text, Clay_TextElementConfig* textConfig);
+
+        [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern Clay_TextElementConfig* Clay__StoreTextElementConfig(Clay_TextElementConfig config);
 
         [DllImport("Clay", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("uint32_t")]

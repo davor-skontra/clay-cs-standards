@@ -6,13 +6,13 @@ using CommunityToolkit.HighPerformance;
 [assembly: DisableRuntimeMarshalling]
 namespace Clay_cs;
 
-public unsafe delegate Clay_Dimensions ClayMeasureTextDelegate(Clay_String* text, Clay_TextElementConfig* config);
+public unsafe delegate Clay_Dimensions ClayMeasureTextDelegate(Clay_StringSlice slice, Clay_TextElementConfig* config, void* userData);
 
 public delegate void ClayErrorDelegate(Clay_ErrorData data);
 
 public delegate void ClayOnHoverDelegate(Clay_ElementId id, Clay_PointerData data, nint userData);
 
-public delegate Clay_Vector2 ClayQueryScrollOffsetDelegate(uint elementId);
+public unsafe delegate Clay_Vector2 ClayQueryScrollOffsetDelegate(uint elementId, void* userdata);
 
 public static class Clay
 {
@@ -76,8 +76,8 @@ public static class Clay
 	{
 		// TODO: do we need to dealloc the ptr?
 		var ptr = Marshal.GetFunctionPointerForDelegate(measureText);
-		var castPtr = (delegate* unmanaged[Cdecl]<Clay_String*, Clay_TextElementConfig*, Clay_Dimensions>)ptr;
-		ClayInterop.Clay_SetMeasureTextFunction(castPtr);
+		var castPtr = (delegate* unmanaged[Cdecl]<Clay_StringSlice, Clay_TextElementConfig*, void*, Clay_Dimensions>)ptr;
+		ClayInterop.Clay_SetMeasureTextFunction(castPtr, null);
 	}
 
 	public static unsafe void Initialize(
@@ -171,8 +171,8 @@ public static class Clay
 	public static unsafe void SetQueryScrollOffsetFunction(ClayQueryScrollOffsetDelegate queryScrollOffsetFunction)
 	{
 		var ptr = Marshal.GetFunctionPointerForDelegate(queryScrollOffsetFunction);
-		var castPtr = (delegate* unmanaged[Cdecl]<uint, Clay_Vector2>)ptr;
-		ClayInterop.Clay_SetQueryScrollOffsetFunction(castPtr);
+		var castPtr = (delegate* unmanaged[Cdecl]<uint, void*, Clay_Vector2>)ptr;
+		ClayInterop.Clay_SetQueryScrollOffsetFunction(castPtr, null);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -218,9 +218,9 @@ public static class Clay
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void ElementPostConfiguration()
+	public static void ConfigureOpenElement(Clay_ElementDeclaration declaration)
 	{
-		ClayInterop.Clay__ElementPostConfiguration();
+		ClayInterop.Clay__ConfigureOpenElement(declaration);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -236,127 +236,60 @@ public static class Clay
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void Id(string text)
+	public static Clay_ElementId Id(string text)
 	{
-		Id(ClayStrings.Get(text));
+		return Id(ClayStrings.Get(text));
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void Id(Clay_String text)
+	public static Clay_ElementId Id(Clay_String text)
 	{
-		AttachId(text, 0, 0);
+		return HashId(text, 0, 0);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void Id(string text, int offset)
+	public static Clay_ElementId Id(string text, int offset)
 	{
-		Id(ClayStrings.Get(text), offset);
+		return Id(ClayStrings.Get(text), offset);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void Id(Clay_String text, int offset)
+	public static Clay_ElementId Id(Clay_String text, int offset)
 	{
-		AttachId(text, (uint)offset, 0);
+		return HashId(text, (uint)offset, 0);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void IdLocal(string text)
+	public static Clay_ElementId IdLocal(string text)
 	{
-		IdLocal(ClayStrings.Get(text));
+		return IdLocal(ClayStrings.Get(text));
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void IdLocal(Clay_String text)
+	public static Clay_ElementId IdLocal(Clay_String text)
 	{
-		AttachId(text, 0, GetParentElementId());
+		return HashId(text, 0, GetParentElementId());
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void IdLocal(string text, int offset)
+	public static Clay_ElementId IdLocal(string text, int offset)
 	{
-		IdLocal(ClayStrings.Get(text), offset);
+		return IdLocal(ClayStrings.Get(text), offset);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static void IdLocal(Clay_String text, int offset)
+	public static Clay_ElementId IdLocal(Clay_String text, int offset)
 	{
-		AttachId(text, (uint)offset, GetParentElementId());
+		return HashId(text, (uint)offset, GetParentElementId());
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	internal static void AttachId(Clay_String text, uint offset, uint seed)
+	internal static Clay_ElementId HashId(Clay_String text, uint offset, uint seed)
 	{
-		ClayInterop.Clay__AttachId(ClayInterop.Clay__HashString(text, offset, seed));
+		return ClayInterop.Clay__HashString(text, offset, seed);
 	}
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void Layout(Clay_LayoutConfig c)
-	{
-		ClayInterop.Clay__AttachLayoutConfig(ClayInterop.Clay__StoreLayoutConfig(c));
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void Rectangle(Clay_RectangleElementConfig c)
-	{
-		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
-		{
-			rectangleElementConfig = ClayInterop.Clay__StoreRectangleElementConfig(c)
-		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_RECTANGLE);
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void Text(Clay_TextElementConfig c)
-	{
-		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
-		{
-			textElementConfig = ClayInterop.Clay__StoreTextElementConfig(c)
-		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_TEXT);
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void Image(Clay_ImageElementConfig c)
-	{
-		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
-		{
-			imageElementConfig = ClayInterop.Clay__StoreImageElementConfig(c)
-		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_IMAGE);
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void Floating(Clay_FloatingElementConfig c)
-	{
-		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
-		{
-			floatingElementConfig = ClayInterop.Clay__StoreFloatingElementConfig(c)
-		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_FLOATING_CONTAINER);
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void Custom(Clay_CustomElementConfig c)
-	{
-		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
-		{
-			customElementConfig = ClayInterop.Clay__StoreCustomElementConfig(c)
-		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_CUSTOM);
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void Scroll(Clay_ScrollElementConfig c)
-	{
-		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
-		{
-			scrollElementConfig = ClayInterop.Clay__StoreScrollElementConfig(c)
-		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_SCROLL_CONTAINER);
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static unsafe void Border(Clay_BorderElementConfig c)
-	{
-		ClayInterop.Clay__AttachElementConfig(new Clay_ElementConfigUnion
-		{
-			borderElementConfig = ClayInterop.Clay__StoreBorderElementConfig(c)
-		}, Clay__ElementConfigType.CLAY__ELEMENT_CONFIG_TYPE_BORDER_CONTAINER);
-	}
+	
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static byte AsByte(this bool b) => b.ToByte();
