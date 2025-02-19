@@ -27,7 +27,7 @@ pub fn build(b: *std.Build) void {
     };
 
     lib.linkLibC();
-    lib.addIncludePath(b.path("src/clay.h"));
+    lib.addIncludePath(b.path("src/clay/clay.h"));
     lib.addCSourceFile(.{ .file = b.path("src/clay.c"), .flags = &flags });
     lib.defineCMacro("CLAY_DLL", "1");
 
