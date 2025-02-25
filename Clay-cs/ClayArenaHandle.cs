@@ -9,6 +9,6 @@ public struct ClayArenaHandle : IDisposable
 
 	public void Dispose()
 	{
-		Marshal.FreeHGlobal(Memory);
+		Clay.FreeArena(this);
 	}
 }
