@@ -147,7 +147,8 @@ public static class Clay
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static void BeginLayout()
 	{
-		GetManagedContext().OnHover.Clear();
+		var context = GetManagedContext();
+		context.OnHover.Clear();
 		ClayInterop.Clay_BeginLayout();
 	}
 
@@ -183,7 +184,9 @@ public static class Clay
 
 	public static unsafe void OnHover(ClayOnHoverDelegate onHover, nint userData = 0)
 	{
-		GetManagedContext().OnHover.Add(onHover);
+		var context = GetManagedContext();
+		context.OnHover.Add(onHover);
+		
 		var ptr = Marshal.GetFunctionPointerForDelegate(onHover);
 		var castPtr = (delegate* unmanaged[Cdecl]<Clay_ElementId, Clay_PointerData, nint, void>)ptr;
 		ClayInterop.Clay_OnHover(castPtr, userData);
@@ -203,7 +206,9 @@ public static class Clay
 
 	public static unsafe void SetQueryScrollOffsetFunction(ClayQueryScrollOffsetDelegate queryScrollOffsetFunction)
 	{
-		GetManagedContext().QueryScrollOffset = queryScrollOffsetFunction;
+		var context = GetManagedContext();
+		context.QueryScrollOffset = queryScrollOffsetFunction;
+		
 		var ptr = Marshal.GetFunctionPointerForDelegate(queryScrollOffsetFunction);
 		var castPtr = (delegate* unmanaged[Cdecl]<uint, void*, Clay_Vector2>)ptr;
 		ClayInterop.Clay_SetQueryScrollOffsetFunction(castPtr, null);
