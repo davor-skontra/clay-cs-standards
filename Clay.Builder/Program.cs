@@ -6,7 +6,7 @@ using static SimpleExec.Command;
 string GetFilePath([CallerFilePath] string path = default!) => path;
 
 string workingDirectory = Path.GetDirectoryName(GetFilePath());
-string clayh = Path.Combine(workingDirectory, "src/clay.h");
+string clayh = Path.Combine(workingDirectory, "src/clay/clay.h");
 string claycs = Path.Combine(workingDirectory, "../Clay-cs/Interop/ClayInterop.cs");
 string zigoutdll = Path.Combine(workingDirectory, "./zig-out/bin/Clay.dll");
 string libdll = Path.Combine(workingDirectory, "../Clay-cs/Clay.dll");
