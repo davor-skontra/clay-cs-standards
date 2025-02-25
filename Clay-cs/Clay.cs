@@ -229,6 +229,16 @@ public static class Clay
 		ClayInterop.Clay__CloseElement();
 	}
 
+	public static ClayElement Element()
+	{
+		return ClayElement.Open();
+	}
+	
+	public static ClayElement Element(Clay_ElementDeclaration declaration)
+	{
+		return ClayElement.Open().Configure(declaration);
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static uint GetParentElementId()
 	{
