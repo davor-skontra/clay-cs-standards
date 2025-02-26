@@ -8,8 +8,10 @@ string GetFilePath([CallerFilePath] string path = default!) => path;
 string workingDirectory = Path.GetDirectoryName(GetFilePath());
 string clayh = Path.Combine(workingDirectory, "src/clay/clay.h");
 string claycs = Path.Combine(workingDirectory, "../Clay-cs/Interop/ClayInterop.cs");
-string zigoutdll = Path.Combine(workingDirectory, "./zig-out/bin/Clay.dll");
-string libdll = Path.Combine(workingDirectory, "../Clay-cs/Clay.dll");
+
+string zigDllOutRoot = Path.Combine(workingDirectory, "./zig-out/bin");
+string zigLibOutRoot = Path.Combine(workingDirectory, "./zig-out/lib");
+string csharpOutRoot = Path.Combine(workingDirectory, "../Clay-cs/runtimes/win-x64/native");
 
 Target("Interop", () =>
 {
@@ -101,18 +103,45 @@ Target("Dll", async () =>
 	var ZigDocPath = Environment.GetEnvironmentVariable("ZigDocPath");
 
 	// clean build
-	var oudDir = Path.GetDirectoryName(zigoutdll);
-	if (Directory.Exists(oudDir))
+	if (Directory.Exists(zigDllOutRoot))
 	{
-		Directory.Delete(oudDir, true);
+		Directory.Delete(zigDllOutRoot, true);
+	}
+	if (Directory.Exists(zigLibOutRoot))
+	{
+		Directory.Delete(zigLibOutRoot, true);
 	}
 
 	await RunAsync("zig", "build", workingDirectory);
-	Directory.CreateDirectory(Path.GetDirectoryName(libdll));
-	File.Delete(libdll);
-	File.Copy(zigoutdll, libdll, true);
+	
+	// clean
+	if (Directory.Exists(csharpOutRoot))
+	{
+		Directory.Delete(csharpOutRoot, true);
+	}
+	
+	// move lib and dll
+	CopyDir(zigDllOutRoot, csharpOutRoot);
+	CopyDir(zigLibOutRoot, csharpOutRoot);
 });
 
 Target("default", DependsOn("Dll", "Interop"));
 
 await RunTargetsAndExitAsync(args, ex => ex is SimpleExec.ExitCodeException);
+return;
+
+
+static void CopyDir(string path, string dest)
+{
+	if (Directory.Exists(dest) == false)
+	{
+		Directory.CreateDirectory(dest);
+	}
+	
+	foreach (var file in Directory.EnumerateFiles(path))
+	{
+		var fileName = Path.GetFileName(file);
+		var destFileName = Path.Combine(dest, fileName);
+		File.Copy(file, destFileName, true);
+	}
+}

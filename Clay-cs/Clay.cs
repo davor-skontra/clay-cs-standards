@@ -121,6 +121,7 @@ public static class Clay
 		ClayContexts[(IntPtr)context] = new ClayManagedContext
 		{
 			ErrorHandler = errorHandler,
+			ArenaMemory = handle.Memory,
 		};
 		
 		return context;
