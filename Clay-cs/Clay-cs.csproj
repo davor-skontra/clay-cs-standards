@@ -8,16 +8,22 @@
         <IsAotCompatible>true</IsAotCompatible>
         <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
         <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
+		<Deterministic>true</Deterministic>
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <Version>0.3.0</Version>
+		<Authors>Orcolom</Authors>
         <Description>Fully featured binding for clay.h
 GC safe, avoiding unneeded classes, and made as low level as possible</Description>
-        <license>https://github.com/Orcolom/clay-cs/blob/master/LICENSE.md</license>
         <RepositoryUrl>https://github.com/Orcolom/clay-cs/</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>clay, layout, clay.h, binding</PackageTags>
         <PackageProjectUrl>https://github.com/Orcolom/clay-cs/</PackageProjectUrl>
-    </PropertyGroup>
+		<EnablePackageValidation>true</EnablePackageValidation>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<Content Include="runtimes\**">
