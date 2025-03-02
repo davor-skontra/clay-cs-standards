@@ -1,6 +1,7 @@
 # 0.3.1 - 2024-03-02
-- Added nugget package to readme
 - First automated release
+- Added: nugget package to readme
+- Added: Clay.Builder can now build multiple targets.
 
 # 0.3.0 - 2024-02-25
 - Added: Nuget package
