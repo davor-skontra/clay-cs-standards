@@ -12,12 +12,13 @@
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <Version>0.3.0</Version>
+        <Version>0.3.1</Version>
 		<Authors>Orcolom</Authors>
         <Description>Fully featured binding for clay.h
 GC safe, avoiding unneeded classes, and made as low level as possible</Description>
         <RepositoryUrl>https://github.com/Orcolom/clay-cs/</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+		<PackageId>Orcolom.Clay_cs</PackageId>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>clay, layout, clay.h, binding</PackageTags>

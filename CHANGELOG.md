@@ -1,3 +1,7 @@
+# 0.3.1 - 2024-03-02
+- Added nugget package to readme
+- First automated release
+
 # 0.3.0 - 2024-02-25
 - Added: Nuget package
 - Added: Easier ClayElement shorthands `Clay.Element()` and `Clay.Element(...)`. These mimic `ClayElement.Open()` and `ClayElement.OpenAndConfigure()` respectively. 

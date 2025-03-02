@@ -84,7 +84,7 @@ public class QuickStart
 # Install
 
 ## Nuget
-> TODO: make and link to nuget or release symbols
+`dotnet add package Orcolom.Clay_cs`
 
 ## Source / Git
 
