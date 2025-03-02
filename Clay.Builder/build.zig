@@ -1,35 +1,63 @@
 const std = @import("std");
 
-// Although this function looks imperative, note that its job is to
-// declaratively construct a build graph that will be executed by an external
-// runner.
-pub fn build(b: *std.Build) void {
+// list of targets to build
 
-    // Standard target options allows the person running `zig build` to choose
-    // what target to build for. Here we do not override the defaults, which
-    // means any target is allowed, and the default is native. Other options
-    // for restricting supported target set are available.
-    const target = b.standardTargetOptions(.{});
+const TargetData = struct {
+    target: std.Target.Query,
+    as_dll: bool,
+};
+
+const TARGETS = [_]TargetData{
+    .{ .target = .{ .cpu_arch = .x86_64, .os_tag = .windows }, .as_dll = true },
+    .{ .target = .{ .cpu_arch = .x86_64, .os_tag = .windows }, .as_dll = false },
+};
+
+pub fn build(b: *std.Build) void {
 
     // Standard optimization options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib = b.addSharedLibrary(.{
-        .name = "Clay",
-        .target = target,
-        .optimize = optimize,
-    });
+    for (TARGETS) |TARGETDATA| {
+        const name = std.fmt.allocPrint(b.allocator, "{s}-{s}-{s}-Clay", .{
+            @tagName(TARGETDATA.target.cpu_arch.?),
+            @tagName(TARGETDATA.target.os_tag.?),
+            if (TARGETDATA.as_dll) "dll" else "lib",
+        }) catch |err| {
+            std.debug.print("Failed to allocate memory {}\n", .{err});
+            return;
+        };
 
-    const flags = [_][]const u8{
-        "-std=c99",
-    };
+        const resolvedTarget = b.resolveTargetQuery(TARGETDATA.target);
 
-    lib.linkLibC();
-    lib.addIncludePath(b.path("src/clay/clay.h"));
-    lib.addCSourceFile(.{ .file = b.path("src/clay.c"), .flags = &flags });
-    lib.defineCMacro("CLAY_DLL", "1");
+        const flags = [_][]const u8{
+            "-std=c99",
+        };
 
-    b.installArtifact(lib);
+        var lib: *std.Build.Step.Compile = undefined;
+
+        if (TARGETDATA.as_dll) {
+            lib = b.addSharedLibrary(.{
+                .name = name,
+                .target = resolvedTarget,
+                .optimize = optimize,
+            });
+        } else {
+            lib = b.addStaticLibrary(.{
+                .name = name,
+                .target = resolvedTarget,
+                .optimize = optimize,
+            });
+        }
+
+        lib.linkLibC();
+        lib.addIncludePath(b.path("src/clay/clay.h"));
+        lib.addCSourceFile(.{ .file = b.path("src/clay.c"), .flags = &flags });
+        if (TARGETDATA.as_dll) {
+            lib.defineCMacro("CLAY_DLL", "1");
+        }
+
+        b.installArtifact(lib);
+    }
 }
