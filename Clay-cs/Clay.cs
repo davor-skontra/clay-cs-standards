@@ -16,6 +16,7 @@ public unsafe delegate Clay_Vector2 ClayQueryScrollOffsetDelegate(uint elementId
 public static class Clay
 {
 	internal static readonly ClayStringCollection ClayStrings = new();
+	internal static readonly Dictionary<nint, ClayManagedContext> ClayContexts = new();
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static int GetMaxElementCount()
@@ -57,11 +58,34 @@ public static class Clay
 		var arena = ClayInterop.Clay_CreateArenaWithCapacityAndMemory(memorySize, (void*)ptr);
 		return new ClayArenaHandle { Arena = arena, Memory = ptr };
 	}
-
+	
+	internal static void FreeArena(ClayArenaHandle handle)
+	{
+		// use the memory to find the linked context
+		nint key = default;
+		foreach (var clayContext in ClayContexts)
+		{
+			if (clayContext.Value.ArenaMemory == handle.Memory)
+			{
+				key = clayContext.Key;
+			}
+		}
+		
+		// free everything
+		ClayContexts.Remove(key);
+		Marshal.FreeHGlobal(handle.Memory);
+	}
+	
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static unsafe Clay_Context* GetCurrentContext()
 	{
 		return ClayInterop.Clay_GetCurrentContext();
+	}
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	internal static unsafe ClayManagedContext GetManagedContext()
+	{
+		return ClayContexts[(IntPtr)GetCurrentContext()];
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -79,7 +103,7 @@ public static class Clay
 		ClayInterop.Clay_SetMeasureTextFunction(castPtr, null);
 	}
 
-	public static unsafe void Initialize(
+	public static unsafe Clay_Context* Initialize(
 		ClayArenaHandle handle,
 		Clay_Dimensions dimensions,
 		ClayErrorDelegate errorHandler)
@@ -88,10 +112,18 @@ public static class Clay
 		var ptr = Marshal.GetFunctionPointerForDelegate(errorHandler);
 		var castPtr = (delegate* unmanaged[Cdecl]<Clay_ErrorData, void>)ptr;
 
-		ClayInterop.Clay_Initialize(handle.Arena, dimensions, new Clay_ErrorHandler
+		var context = ClayInterop.Clay_Initialize(handle.Arena, dimensions, new Clay_ErrorHandler
 		{
-			errorHandlerFunction = castPtr
+			errorHandlerFunction = castPtr,
 		});
+
+		ClayContexts[(IntPtr)context] = new ClayManagedContext
+		{
+			ErrorHandler = errorHandler,
+			ArenaMemory = handle.Memory,
+		};
+		
+		return context;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -115,6 +147,8 @@ public static class Clay
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static void BeginLayout()
 	{
+		var context = GetManagedContext();
+		context.OnHover.Clear();
 		ClayInterop.Clay_BeginLayout();
 	}
 
@@ -150,6 +184,9 @@ public static class Clay
 
 	public static unsafe void OnHover(ClayOnHoverDelegate onHover, nint userData = 0)
 	{
+		var context = GetManagedContext();
+		context.OnHover.Add(onHover);
+		
 		var ptr = Marshal.GetFunctionPointerForDelegate(onHover);
 		var castPtr = (delegate* unmanaged[Cdecl]<Clay_ElementId, Clay_PointerData, nint, void>)ptr;
 		ClayInterop.Clay_OnHover(castPtr, userData);
@@ -169,6 +206,9 @@ public static class Clay
 
 	public static unsafe void SetQueryScrollOffsetFunction(ClayQueryScrollOffsetDelegate queryScrollOffsetFunction)
 	{
+		var context = GetManagedContext();
+		context.QueryScrollOffset = queryScrollOffsetFunction;
+		
 		var ptr = Marshal.GetFunctionPointerForDelegate(queryScrollOffsetFunction);
 		var castPtr = (delegate* unmanaged[Cdecl]<uint, void*, Clay_Vector2>)ptr;
 		ClayInterop.Clay_SetQueryScrollOffsetFunction(castPtr, null);
@@ -226,6 +266,16 @@ public static class Clay
 	public static void CloseElement()
 	{
 		ClayInterop.Clay__CloseElement();
+	}
+
+	public static ClayElement Element()
+	{
+		return ClayElement.Open();
+	}
+	
+	public static ClayElement Element(Clay_ElementDeclaration declaration)
+	{
+		return ClayElement.Open().Configure(declaration);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -287,12 +337,4 @@ public static class Clay
 	{
 		return ClayInterop.Clay__HashString(text, offset, seed);
 	}
-
-	
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static byte AsByte(this bool b) => b.ToByte();
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool AsBool(this byte b) => b != 0;
 }

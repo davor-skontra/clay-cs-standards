@@ -79,7 +79,7 @@ public class IntroducingClay : IDisposable
 
 			Clay.BeginLayout();
 
-			using (ClayElement.OpenAndConfigure(new()
+			using (Clay.Element(new()
 			{
 				id = Clay.Id(_clayString["OuterContainer"]),
 				backgroundColor = new Clay_Color(43, 41, 51),
@@ -92,7 +92,7 @@ public class IntroducingClay : IDisposable
 				}
 			}))
 			{
-				using (ClayElement.OpenAndConfigure(new()
+				using (Clay.Element(new()
 				{
 					id = Clay.Id(_clayString["HeaderBar"]),
 					backgroundColor = _contentBackgroundColor,
@@ -109,7 +109,7 @@ public class IntroducingClay : IDisposable
 					var fileButtonStr = _clayString["FileButton"];
 					var fileMenuStr = _clayString["FileMenu"];
 
-					using (ClayElement.OpenAndConfigure(new()
+					using (Clay.Element(new()
 					{
 						id = Clay.Id(fileButtonStr),
 						layout = new()
@@ -131,7 +131,7 @@ public class IntroducingClay : IDisposable
 
 						if (isMenuVisible)
 						{
-							using (ClayElement.OpenAndConfigure(new()
+							using (Clay.Element(new()
 							{
 								id = Clay.Id(fileMenuStr),
 								floating = new()
@@ -148,7 +148,7 @@ public class IntroducingClay : IDisposable
 								}
 							}))
 							{
-								using (ClayElement.OpenAndConfigure(new()
+								using (Clay.Element(new()
 								{
 									layout = new()
 									{
@@ -168,7 +168,7 @@ public class IntroducingClay : IDisposable
 					}
 
 					RenderHeaderButton(_clayString["Edit"]);
-					using (ClayElement.OpenAndConfigure(new()
+					using (Clay.Element(new()
 					{
 						layout = new()
 						{
@@ -184,7 +184,7 @@ public class IntroducingClay : IDisposable
 					RenderHeaderButton(_clayString["Upload"]);
 				}
 
-				using (ClayElement.OpenAndConfigure(new()
+				using (Clay.Element(new()
 				{
 					id = Clay.Id(_clayString["LowerContent"]),
 					layout = new()
@@ -194,7 +194,7 @@ public class IntroducingClay : IDisposable
 					}
 				}))
 				{
-					using (ClayElement.OpenAndConfigure(new()
+					using (Clay.Element(new()
 					{
 						id = Clay.Id(_clayString["Sidebar"]),
 						backgroundColor = _contentBackgroundColor,
@@ -219,7 +219,7 @@ public class IntroducingClay : IDisposable
 
 							if (documentIndex == _selectedDocumentIndex)
 							{
-								using (ClayElement.OpenAndConfigure(new()
+								using (Clay.Element(new()
 								{
 									layout = sidebarButtonLayout,
 									backgroundColor = new Clay_Color(120, 120, 120, 255),
@@ -235,17 +235,17 @@ public class IntroducingClay : IDisposable
 							}
 							else
 							{
-								using (ClayElement.Open()
-									.Configure(new()
+								using (var sidebarButton = Clay.Element())
+								{
+									sidebarButton.Configure(new()
 									{
 										layout = sidebarButtonLayout,
 										backgroundColor = Clay.IsHovered() == false
 											? default
 											: new Clay_Color(120, 120, 120, 255),
 										cornerRadius = Clay_CornerRadius.All(8),
-									})
-								)
-								{
+									});
+									
 									var index = documentIndex;
 									Clay.OnHover((_, data, _) =>
 									{
@@ -264,7 +264,7 @@ public class IntroducingClay : IDisposable
 						}
 					}
 
-					using (ClayElement.OpenAndConfigure(new()
+					using (Clay.Element(new()
 					{
 						id = Clay.Id(_clayString["MainContent"]),
 						scroll = new()
@@ -308,7 +308,7 @@ public class IntroducingClay : IDisposable
 
 	private void RenderHeaderButton(Clay_String text)
 	{
-		using (ClayElement.OpenAndConfigure(new()
+		using (Clay.Element(new()
 		{
 			layout = new()
 			{
@@ -328,7 +328,7 @@ public class IntroducingClay : IDisposable
 
 	private void RenderDropdownMenuItem(Clay_String text)
 	{
-		using (ClayElement.OpenAndConfigure(new()
+		using (Clay.Element(new()
 		{
 			layout = new()
 			{
