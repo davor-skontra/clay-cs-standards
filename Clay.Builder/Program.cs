@@ -1,18 +1,15 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
+using Clay.Builder;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
 
-string GetFilePath([CallerFilePath] string path = default!) => path;
-
-string workingDirectory = Path.GetDirectoryName(GetFilePath());
-string clayh = Path.Combine(workingDirectory, "src/clay.h");
-string claycs = Path.Combine(workingDirectory, "../Clay-cs/Interop/ClayInterop.cs");
-string zigoutdll = Path.Combine(workingDirectory, "./zig-out/bin/Clay.dll");
-string libdll = Path.Combine(workingDirectory, "../Clay-cs/Clay.dll");
+string workingDirectory = Path.GetDirectoryName(Utilities.GetFilePath())!;
 
 Target("Interop", () =>
 {
+	string clayH = Path.Combine(workingDirectory, "src/clay/clay.h");
+	string clayCs = Path.Combine(workingDirectory, "../Clay-cs/Interop/ClayInterop.cs");
+
 	var interopArgs = string.Join(' ', [
 		string.Join(' ', [
 			"--config",
@@ -77,42 +74,76 @@ Target("Interop", () =>
 		"--namespace Clay_cs",
 		"--methodClassName ClayInterop",
 		"--libraryPath Clay",
-		$"--file {clayh}",
-		$"--output {claycs}",
+		$"--file {clayH}",
+		$"--output {clayCs}",
 	]);
 	Run("ClangSharpPInvokeGenerator", interopArgs, workingDirectory);
 
 	// ClangSharpPInvokeGenerator is adding a trailing '}' that breaks compilation
-	var text = File.ReadAllText(claycs);
+	var text = File.ReadAllText(clayCs);
 	var idx = text.LastIndexOf('}');
 	text = text.Substring(0, idx);
 
 	// fix naming
 	text = text.Replace("_size_e__Union", "ClaySizingUnion");
-	
-	File.WriteAllText(claycs, text);
+
+	File.WriteAllText(clayCs, text);
 });
+
+// -------------------------------------------------------------
+
+string zigDllOut = "./zig-out";
+BuildData[] buildData =
+[
+	new("../Clay-cs/runtimes/win-x64/native", [
+		new("./bin",
+		[
+			new FileData("x86_64-windows-dll-Clay.dll", "Clay.dll"),
+			new FileData("x86_64-windows-dll-Clay.pdb", "Clay.pdb"),
+		]),
+		new("./lib",
+		[
+			new FileData("x86_64-windows-lib-Clay.lib", "Clay.lib"),
+		]),
+	]),
+];
+
 
 Target("Dll", async () =>
 {
-	var ZigToolsetPath = Environment.GetEnvironmentVariable("ZigToolsetPath");
-	var ZigExePath = Environment.GetEnvironmentVariable("ZigExePath");
-	var ZigLibPath = Environment.GetEnvironmentVariable("ZigLibPath");
-	var ZigDocPath = Environment.GetEnvironmentVariable("ZigDocPath");
-
+	var fromPath = Path.Combine(workingDirectory, zigDllOut);
 	// clean build
-	var oudDir = Path.GetDirectoryName(zigoutdll);
-	if (Directory.Exists(oudDir))
+	if (Directory.Exists(fromPath))
 	{
-		Directory.Delete(oudDir, true);
+		Directory.Delete(fromPath, true);
 	}
 
 	await RunAsync("zig", "build", workingDirectory);
-	Directory.CreateDirectory(Path.GetDirectoryName(libdll));
-	File.Delete(libdll);
-	File.Copy(zigoutdll, libdll, true);
+
+	foreach (var data in buildData)
+	{
+		var destPath = Path.Combine(workingDirectory, data.MoveTo);
+
+		// clean
+		if (Directory.Exists(destPath))
+		{
+			Directory.Delete(destPath, true);
+		}
+
+		Directory.CreateDirectory(destPath);
+
+		foreach (var folder in data.Folders)
+		{
+			foreach (var file in folder.Files)
+			{
+				var fromFile = Path.Combine(fromPath, folder.FromRelPath, file.Name);
+				var toFile = Path.Combine(destPath, file.Rename);
+
+				File.Copy(fromFile, toFile, true);
+			}
+		}
+	}
 });
 
 Target("default", DependsOn("Dll", "Interop"));
-
 await RunTargetsAndExitAsync(args, ex => ex is SimpleExec.ExitCodeException);

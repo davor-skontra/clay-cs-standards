@@ -42,7 +42,7 @@ public class QuickStart
 			// build your layout
 			Clay.BeginLayout();
 
-			using (ClayElement.OpenAndConfigure(new()
+			using (Clay.Element(new()
 			{
 				id = Clay.Id("QuickStart"),
 				backgroundColor = new Clay_Color(25, 0, 25),
@@ -76,9 +76,20 @@ public class QuickStart
 }
 ```
 
+# Limitations
+
+- Only dll has been build and tested.
+- This package currently has no plans to fully implement any renderers. The example project contains a Raylib renderer (`RaylibClay.cs`). If you want to use this we recommend you to just copy it and modify as you need. 
+
 # Install
 
-> make and link to nuget or release symbols
+## Nuget
+`dotnet add package Orcolom.Clay_cs`
+
+## Source / Git
+
+- Clone this project locally and include all submodules.
+- Add `Clay-cs.csproj` as your dependency
 
 ---
 

@@ -31,7 +31,7 @@ public class QuickStart
 			// build your layout
 			Clay.BeginLayout();
 
-			using (ClayElement.OpenAndConfigure(new()
+			using (Clay.Element(new()
 			{
 				id = Clay.Id("QuickStart"),
 				backgroundColor = new Clay_Color(25, 0, 25),
