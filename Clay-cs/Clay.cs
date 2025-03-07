@@ -3,7 +3,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 
+#if NET7_0_OR_GREATER
+// DisableRuntimeMarshalling was introduced in .NET7.
 [assembly: DisableRuntimeMarshalling]
+#endif
+
 namespace Clay_cs;
 
 public unsafe delegate Clay_Dimensions ClayMeasureTextDelegate(Clay_StringSlice slice, Clay_TextElementConfig* config, void* userData);
