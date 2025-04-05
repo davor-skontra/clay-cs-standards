@@ -1,3 +1,5 @@
+#Personal experimental fork of clay-rs. My intent is to find out what it would take to bring the bindings into compliance with standard C# naming rules and learn a bit about interop in the process,"
+
 # Clay-cs
 
 c# binding for [clay.h](https://github.com/nicbarker/clay), an intimidate mode ui layout library with css-like styling. 
